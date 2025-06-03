@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser("split")
 parser.add_argument("-site", help="Add a domain to (re-)generate scene splits for.", type=str)
 args = parser.parse_args()
 
-args.site = ""
+args.site = "cmn.edu"
 
 # Define the base directory
 results_dir = 'results'
@@ -59,7 +59,7 @@ def process_video(video_path, institution_scenes_dir):
     
     # Step 1: Detect scene changes
     scene_crawl = 10
-    scene_diff = 0.20
+    scene_diff = 0.30
     scene_detection_command = [
         'ffmpeg', '-i', video_path, '-filter_complex',
         f"select='not(mod(n,{scene_crawl}))',select='gt(scene,{scene_diff})',showinfo", '-f', 'null', '-'
