@@ -1,12 +1,20 @@
 import os
+import argparse
 import subprocess
+import mimetypes
+
+#argument 
+parser = argparse.ArgumentParser("split")
+parser.add_argument("-site", help="Add a domain to (re-)generate scene splits for.", type=str)
+args = parser.parse_args()
+
+args.site = "www.apsu.edu"
 
 # Define the base directory
 results_dir = 'results'
 
 def is_file_smaller_than_1kb(file_path):
     return os.path.getsize(file_path) < 1024
-
 
 def get_video_duration(video_path):
     """Get the duration of the video in seconds."""
@@ -49,9 +57,11 @@ def process_video(video_path, institution_scenes_dir):
     scene_log_file = os.path.dirname(video_path) + '/scene_log.txt'
 
     # Step 1: Detect scene changes
+    scene_crawl = 20
+    scene_diff = 0.20
     scene_detection_command = [
         'ffmpeg', '-i', video_path, '-filter_complex',
-        "select='gt(scene,0.3)',showinfo", '-f', 'null', '-'
+        f"select='not(mod(n,{scene_crawl}))',select='gt(scene,{scene_diff})',showinfo", '-f', 'null', '-'
     ]
     with open(scene_log_file, 'w') as log_file:
         subprocess.run(scene_detection_command, stderr=log_file)
@@ -82,9 +92,7 @@ def process_video(video_path, institution_scenes_dir):
     ]
     subprocess.run(split_command)
 
-# Process all videos in results/
-for institution_folder in os.listdir(results_dir):
-    institution_path = os.path.join(results_dir, institution_folder)
+def process_folder(institution_path):
     if os.path.isdir(institution_path):
         for video_file in os.listdir(institution_path):
             video_path = os.path.join(institution_path, video_file)
@@ -93,12 +101,23 @@ for institution_folder in os.listdir(results_dir):
                 institution_scenes_dir = os.path.join(institution_path, 'scenes')
                 if not os.path.isdir(institution_scenes_dir):
                     os.makedirs(institution_scenes_dir, exist_ok=True)
+                print(f"Checking {video_path}... ")
+                if mimetypes.guess_type(video_path)[0] is None:
+                    print(f"File is none, skipping...")
+                    continue
+                if mimetypes.guess_type(video_path)[0].startswith('video'):
+                    print(f"Processing video {video_path}")
                     process_video(video_path, institution_scenes_dir)
-                    ## Checking for blacked out videos and removing.
-                    subprocess.run(["python", "black.py", institution_scenes_dir])
+                else:
+                    print(f"Cannot process {video_path}, mimetype is " + mimetypes.guess_type(video_path)[0])
+                ## Checking for blacked out videos and removing.
+                subprocess.run(["python", "black.py", institution_scenes_dir])
                 for video_clip_file in os.listdir(institution_scenes_dir):
+                    if video_clip_file == ".DS_Store":
+                        print(f"Blasting {video_clip_file} into the sun!")
+                        continue
                     video_clip_path = os.path.join(institution_scenes_dir, video_clip_file)    
-                    # Removing tiny videos.  
+                    # Removing tiny videos. 
                     if is_file_smaller_than_1kb(video_clip_path):
                         print(f"{video_clip_path} is corrupt - removing the video.")
                         os.remove(video_clip_path)
@@ -108,5 +127,15 @@ for institution_folder in os.listdir(results_dir):
                             capture_middle_frame(video_clip_path)
                         else:
                             print(f"Path does not exist {video_clip_path}")
-                
+
+if args.site == "":
+    # Process all videos in results/
+    for institution_folder in os.listdir(results_dir):
+        institution_path = os.path.join(results_dir, institution_folder)
+        process_folder(institution_path)
+else:
+    print(f"Processing {args.site}...")
+    institution_path = os.path.join(results_dir, args.site)
+    process_folder(institution_path)
+
 print("Scene detection and video splitting completed for all videos.")
