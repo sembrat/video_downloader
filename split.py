@@ -1,6 +1,7 @@
 import os
 import argparse
 import subprocess
+import shutil
 import mimetypes
 
 #argument 
@@ -8,7 +9,7 @@ parser = argparse.ArgumentParser("split")
 parser.add_argument("-site", help="Add a domain to (re-)generate scene splits for.", type=str)
 args = parser.parse_args()
 
-args.site = "www.apsu.edu"
+args.site = ""
 
 # Define the base directory
 results_dir = 'results'
@@ -30,7 +31,7 @@ def get_video_duration(video_path):
     return float(result.stdout)
 
 def capture_middle_frame(video_path):
-    """Capture a screenshot from the middle of the video using the video filename."""
+    print(f"Generating screenshot for {video_path}...")
     duration = get_video_duration(video_path)
     midpoint = duration / 2
 
@@ -55,9 +56,9 @@ def capture_middle_frame(video_path):
 # Function to detect scenes and split video
 def process_video(video_path, institution_scenes_dir):
     scene_log_file = os.path.dirname(video_path) + '/scene_log.txt'
-
+    
     # Step 1: Detect scene changes
-    scene_crawl = 20
+    scene_crawl = 10
     scene_diff = 0.20
     scene_detection_command = [
         'ffmpeg', '-i', video_path, '-filter_complex',
@@ -99,8 +100,9 @@ def process_folder(institution_path):
             if os.path.isfile(video_path):
                 # Create 'scenes' subdirectory inside the institution folder
                 institution_scenes_dir = os.path.join(institution_path, 'scenes')
-                if not os.path.isdir(institution_scenes_dir):
-                    os.makedirs(institution_scenes_dir, exist_ok=True)
+                if os.path.isdir(institution_scenes_dir):
+                    shutil.rmtree(institution_scenes_dir)
+                os.makedirs(institution_scenes_dir, exist_ok=True)
                 print(f"Checking {video_path}... ")
                 if mimetypes.guess_type(video_path)[0] is None:
                     print(f"File is none, skipping...")
