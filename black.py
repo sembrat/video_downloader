@@ -14,7 +14,7 @@ parser.add_argument("path", help="Path to video files.")
 args = parser.parse_args()
 
 # Use the argument
-print(f"You provided the video path: {args.path}")
+print(f"Running blank video scenes on video path: {args.path}")
 
 # Directory containing the videos
 VIDEO_DIR = Path(args.path)
@@ -33,6 +33,7 @@ def is_mostly_black(video_path):
             text=True
         )
         duration = float(result.stdout.strip())
+        print(f"Video has {duration} length.")
 
         # Run blackdetect
         cmd = [

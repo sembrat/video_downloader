@@ -3,22 +3,51 @@ import argparse
 import subprocess
 import shutil
 import mimetypes
+import time
+
+# Define the base directory
+operation = "append" # append to index new sites, "rewrite" to rewrite all scenes directories
+results_dir = 'results'
+
+if operation != "append" or operation != "rewrite":
+    print(f"Provide a proper operation, [{operation}] is not valid!")
+    exit
+else:
+    print(f"Running operation {operation}")
 
 #argument 
 parser = argparse.ArgumentParser("split")
 parser.add_argument("-site", help="Add a domain to (re-)generate scene splits for.", type=str)
 args = parser.parse_args()
+args.site = []
 
-args.site = "cmn.edu"
+def is_directory_empty(path):
+    return not os.listdir(path)
 
-# Define the base directory
-results_dir = 'results'
+def sanitize_filename(filename):
+    return filename.split('?')[0]
 
 def is_file_smaller_than_1kb(file_path):
     return os.path.getsize(file_path) < 1024
 
+def is_video_corrupted(file_path):
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe", "-hide_banner", "-v", 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', file_path
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=True
+        )
+        return False # ffprobe succeeded
+    except subprocess.CalledProcessError as e:
+        print(f"ffprobe failed: {e.stderr}")
+        return True
+
 def get_video_duration(video_path):
-    """Get the duration of the video in seconds."""
+    # Get the duration of the video in seconds.
     result = subprocess.run(
         [
             "ffprobe", "-v", "error", "-show_entries",
@@ -40,7 +69,7 @@ def capture_middle_frame(video_path):
     output_image_path = os.path.join(os.path.dirname(video_path),output_image_name)
 
     if os.path.exists(output_image_path):
-        print(f"Screenshot already exists: {output_image_name}")
+        os.remove(output_image_path)
 
     subprocess.run([
         "ffmpeg",
@@ -74,42 +103,76 @@ def process_video(video_path, institution_scenes_dir):
             if 'pts_time:' in line:
                 timestamp = float(line.split('pts_time:')[1].split(' ')[0])
                 timestamps.append(timestamp)
-
+    
     # Step 3: Split video
-    previous_timestamp = 0
-    for i, timestamp in enumerate(timestamps):
-        output_clip = os.path.join(institution_scenes_dir, f'scene_{i+1}.mp4')
+    print("Video analyzed; found " + str(len(timestamps)) + " splits!")
+    if str(len(timestamps)) == "0":
+        print("No scenes found, creating duplicate for AI usage...")
+        output_clip = os.path.join(institution_scenes_dir, 'scene_1.mp4')
+        shutil.copyfile(video_path,output_clip)
+        print(f"Created scene_1.mp4!")
+    else:
+        previous_timestamp = 0
+        for i, timestamp in enumerate(timestamps):
+            print(f"Creating scene_{i+1}.mp4...")
+            output_clip = os.path.join(institution_scenes_dir, f'scene_{i+1}.mp4')
+            split_command = [
+                'ffmpeg','-y', '-i', video_path, '-ss', str(previous_timestamp), '-to', str(timestamp),
+                '-c:v', 'libx264', '-c:a', 'aac', output_clip
+            ]
+            subprocess.run(split_command)
+            print(f"Created scene_{i+1}.mp4!")
+            previous_timestamp = timestamp
+
+        # Final segment
+        output_clip = os.path.join(institution_scenes_dir, f'scene_{len(timestamps)+1}.mp4')
         split_command = [
-            'ffmpeg','-y', '-i', video_path, '-ss', str(previous_timestamp), '-to', str(timestamp),
-            '-c:v', 'libx264', '-c:a', 'aac', output_clip
+            'ffmpeg', '-y', '-i', video_path, '-ss', str(previous_timestamp), '-c', 'copy', output_clip
         ]
         subprocess.run(split_command)
-        previous_timestamp = timestamp
+        print(f"Created scene_{len(timestamps)+1}.mp4!")
 
-    # Final segment
-    output_clip = os.path.join(institution_scenes_dir, f'scene_{len(timestamps)+1}.mp4')
-    split_command = [
-        'ffmpeg', '-y', '-i', video_path, '-ss', str(previous_timestamp), '-c', 'copy', output_clip
-    ]
-    subprocess.run(split_command)
+def prune_folder(institution_path):
+    shutil.rmtree(institution_path)
 
 def process_folder(institution_path):
     if os.path.isdir(institution_path):
+        # Create 'scenes' subdirectory inside the institution folder
+        institution_scenes_dir = os.path.join(institution_path, 'scenes')
+        if operation == "rewrite":
+            if os.path.isdir(institution_scenes_dir):
+                print(f"Removing scenes directory: {institution_scenes_dir}")
+                shutil.rmtree(institution_scenes_dir)
+        if not os.path.isdir(institution_scenes_dir):
+            os.makedirs(institution_scenes_dir, exist_ok=True)
         for video_file in os.listdir(institution_path):
+            # Check if video has a fubar name
+            video_file_sanitized = sanitize_filename(video_file)
+            if video_file_sanitized != video_file:
+                os.rename(os.path.join(institution_path, video_file), os.path.join(institution_path, video_file_sanitized))
+                video_file = video_file_sanitized
+                del video_file_sanitized
             video_path = os.path.join(institution_path, video_file)
             if os.path.isfile(video_path):
-                # Create 'scenes' subdirectory inside the institution folder
-                institution_scenes_dir = os.path.join(institution_path, 'scenes')
-                if os.path.isdir(institution_scenes_dir):
-                    shutil.rmtree(institution_scenes_dir)
-                os.makedirs(institution_scenes_dir, exist_ok=True)
                 print(f"Checking {video_path}... ")
                 if mimetypes.guess_type(video_path)[0] is None:
                     print(f"File is none, skipping...")
                     continue
+                if is_video_corrupted(video_path):
+                    print(f"{video_path} is corrupt - removing the video.")
+                    prune_folder(institution_path)
+                    continue
                 if mimetypes.guess_type(video_path)[0].startswith('video'):
                     print(f"Processing video {video_path}")
-                    process_video(video_path, institution_scenes_dir)
+                    # if directory is empty, rebuild scenes
+                    if operation == "append":
+                        if is_directory_empty(institution_scenes_dir):
+                            print(f"Scenes is empty, populating... {institution_scenes_dir}")
+                            process_video(video_path, institution_scenes_dir)
+                        else:
+                            print(f"Scenes is not empty, skipping! {institution_scenes_dir}")
+                    else: # Case Overwrite
+                        process_video(video_path, institution_scenes_dir)
                 else:
                     print(f"Cannot process {video_path}, mimetype is " + mimetypes.guess_type(video_path)[0])
                 ## Checking for blacked out videos and removing.
@@ -120,7 +183,7 @@ def process_folder(institution_path):
                         continue
                     video_clip_path = os.path.join(institution_scenes_dir, video_clip_file)    
                     # Removing tiny videos. 
-                    if is_file_smaller_than_1kb(video_clip_path):
+                    if is_video_corrupted(video_clip_path) or is_file_smaller_than_1kb(video_clip_path):
                         print(f"{video_clip_path} is corrupt - removing the video.")
                         os.remove(video_clip_path)
                     else:
@@ -130,14 +193,16 @@ def process_folder(institution_path):
                         else:
                             print(f"Path does not exist {video_clip_path}")
 
-if args.site == "":
+if not args.site:
     # Process all videos in results/
     for institution_folder in os.listdir(results_dir):
         institution_path = os.path.join(results_dir, institution_folder)
         process_folder(institution_path)
 else:
-    print(f"Processing {args.site}...")
-    institution_path = os.path.join(results_dir, args.site)
-    process_folder(institution_path)
+    # Processing array of troublemakers
+    for i, site in args.site:
+        print(f"Processing {site}...")
+        institution_path = os.path.join(results_dir, site)
+        process_folder(institution_path)
 
 print("Scene detection and video splitting completed for all videos.")
