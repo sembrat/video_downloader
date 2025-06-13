@@ -50,15 +50,17 @@ def find_row(data, search_value):
 
 def scene_split_process(directory):
     result = find_row(sites_lookup, directory)
+    global scene_crawl 
+    global scene_diff
     if not result:
         # Reapply default variables
         print("Applying default scene variables...")
         scene_crawl = 10
         scene_diff = 0.30
     else:
-        print("Applying custom scene variables...")
         scene_crawl = result['crawl']
         scene_diff = result['diff']
+    print(f"Processing video with crawl={scene_crawl}, diff={scene_diff}")
     return None
 
 def is_directory_empty(path):
@@ -125,7 +127,7 @@ def capture_middle_frame(video_path):
 # Function to detect scenes and split video
 def process_video(video_path, institution_scenes_dir):
     scene_log_file = os.path.dirname(video_path) + '/scene_log.txt'
-    
+    print(f"Processing crawler={scene_crawl}, diff={scene_diff}...")
 
     scene_detection_command = [
         'ffmpeg', '-i', video_path, '-filter_complex',
