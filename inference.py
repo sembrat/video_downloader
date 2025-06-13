@@ -3,14 +3,23 @@ import lmstudio as lms
 import base64
 import os
 import subprocess
+import datetime as datetime
 import pandas as pd
 from openai import OpenAI
 
+#-----------------------------------------------------------------------
+# Configure inference
+sites = [ "mru.edu" ]
+
+# Regular functions
+# -----------------------------------------------------------------------
 def image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
     return encoded_string
 
+# Default function
+# -----------------------------------------------------------------------
 # Define the base directory
 results_dir = 'results'
 
@@ -20,8 +29,12 @@ client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
 # Initialize a list to store the data for the Excel file
 data = []
 
+# First, populate sites if the argument is empty
+if not sites:
+    sites = os.listdir(results_dir)
+
 # Iterate through each domain folder in the results directory
-for domain in os.listdir(results_dir):
+for domain in sites:
     print(f"Analyzing {domain}...")
     domain_path = os.path.join(results_dir, domain)
 
@@ -113,6 +126,8 @@ for domain in os.listdir(results_dir):
 df = pd.DataFrame(data, columns=['Domain', 'Scene', 'Length', 'Description', 'Category'])
 
 # Write the DataFrame to an Excel file
-df.to_excel('scenes.xlsx', index=False)
+now = datetime.now()
+timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
+df.to_excel(f'scenes_{timestamp}.xlsx', index=False)
 
 print("Data has been written to output.xlsx")
