@@ -3,7 +3,7 @@ import lmstudio as lms
 import base64
 import os
 import subprocess
-import datetime as datetime
+from datetime import datetime
 import pandas as pd
 from openai import OpenAI
 
