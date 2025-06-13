@@ -1,4 +1,5 @@
 import os
+import csv
 import argparse
 import subprocess
 import shutil
@@ -6,20 +7,59 @@ import mimetypes
 import time
 
 # Define the base directory
-operation = "append" # append to index new sites, "rewrite" to rewrite all scenes directories
 results_dir = 'results'
 
-if operation != "append" or operation != "rewrite":
+#-----------------------------------------------------------------------
+# Configure split usage
+# - append: index for new sites
+# - rewrite: rewrite scenes
+operation = "rewrite" 
+sites = [ "mru.edu" ]
+table_lookup = "lookup.csv"
+#-----------------------------------------------------------------------
+
+# Default variables
+scene_crawl = 10
+scene_diff = 0.30
+
+# Process operation
+# -----------------------------------------------------------------------
+# if no operation, quit.
+if operation != "append" and operation != "rewrite":
     print(f"Provide a proper operation, [{operation}] is not valid!")
-    exit
+    quit
 else:
     print(f"Running operation {operation}")
 
-#argument 
-parser = argparse.ArgumentParser("split")
-parser.add_argument("-site", help="Add a domain to (re-)generate scene splits for.", type=str)
-args = parser.parse_args()
-args.site = []
+# Regular functions
+# -----------------------------------------------------------------------
+
+# Stores scene split lookup
+def scene_split_lookup(csv_file_path):
+    with open(csv_file_path, mode='r', newline='', encoding='utf-8-sig') as csvfile:
+        reader = csv.DictReader(csvfile)
+        return list(reader)  # List of dictionaries
+
+# An agnostic find_row content for scene_split dictionary
+def find_row(data, search_value):
+    for row in data:
+        print(row)
+        if row['site'] == search_value:
+            return row
+    return None
+
+def scene_split_process(directory):
+    result = find_row(sites_lookup, directory)
+    if not result:
+        # Reapply default variables
+        print("Applying default scene variables...")
+        scene_crawl = 10
+        scene_diff = 0.30
+    else:
+        print("Applying custom scene variables...")
+        scene_crawl = result['crawl']
+        scene_diff = result['diff']
+    return None
 
 def is_directory_empty(path):
     return not os.listdir(path)
@@ -86,9 +126,7 @@ def capture_middle_frame(video_path):
 def process_video(video_path, institution_scenes_dir):
     scene_log_file = os.path.dirname(video_path) + '/scene_log.txt'
     
-    # Step 1: Detect scene changes
-    scene_crawl = 10
-    scene_diff = 0.30
+
     scene_detection_command = [
         'ffmpeg', '-i', video_path, '-filter_complex',
         f"select='not(mod(n,{scene_crawl}))',select='gt(scene,{scene_diff})',showinfo", '-f', 'null', '-'
@@ -137,6 +175,8 @@ def prune_folder(institution_path):
 
 def process_folder(institution_path):
     if os.path.isdir(institution_path):
+        
+
         # Create 'scenes' subdirectory inside the institution folder
         institution_scenes_dir = os.path.join(institution_path, 'scenes')
         if operation == "rewrite":
@@ -193,15 +233,22 @@ def process_folder(institution_path):
                         else:
                             print(f"Path does not exist {video_clip_path}")
 
-if not args.site:
+# main function run
+# -----------------------------------------------------------------------
+# Load once
+sites_lookup = scene_split_lookup(table_lookup)
+
+if not sites:
     # Process all videos in results/
     for institution_folder in os.listdir(results_dir):
+        scene_split_process(institution_folder)
         institution_path = os.path.join(results_dir, institution_folder)
         process_folder(institution_path)
 else:
     # Processing array of troublemakers
-    for i, site in args.site:
+    for site in sites:
         print(f"Processing {site}...")
+        scene_split_process(site)
         institution_path = os.path.join(results_dir, site)
         process_folder(institution_path)
 

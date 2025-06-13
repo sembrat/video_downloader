@@ -8,8 +8,6 @@ from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 from PIL import Image as PILImage
 
-
-
 # Define paths
 excel_file = 'scan_results.xlsx'
 #input_file_name = "resource/hd2023.csv"
