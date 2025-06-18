@@ -13,8 +13,9 @@ results_dir = 'results'
 # Configure split usage
 # - append: index for new sites
 # - rewrite: rewrite scenes
+# - custom: apply a timestamp split for a screenshot
 operation = "rewrite" 
-sites = [ "mru.edu" ]
+sites = [ "nwc.edu" ]
 table_lookup = "lookup.csv"
 #-----------------------------------------------------------------------
 

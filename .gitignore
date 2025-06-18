@@ -7,3 +7,5 @@ scan_results.xlsx
 scene_screenshots.xlsx
 scenes.xlsx
 scenes_*.xlsx
+screenshots/*
+pausey_*

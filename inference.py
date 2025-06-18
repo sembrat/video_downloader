@@ -9,7 +9,7 @@ from openai import OpenAI
 
 #-----------------------------------------------------------------------
 # Configure inference
-sites = [ "mru.edu" ]
+sites = [ "nwc.edu" ]
 
 # Regular functions
 # -----------------------------------------------------------------------
