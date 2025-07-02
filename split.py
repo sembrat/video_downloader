@@ -15,7 +15,7 @@ results_dir = 'results'
 # - rewrite: rewrite scenes
 # - custom: apply a timestamp split for a screenshot
 operation = "rewrite" 
-sites = [ "nwc.edu" ]
+sites = [ "springfield.edu" ]
 table_lookup = "lookup.csv"
 #-----------------------------------------------------------------------
 
