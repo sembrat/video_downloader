@@ -9,7 +9,7 @@ from openai import OpenAI
 
 #-----------------------------------------------------------------------
 # Configure inference
-sites = [ "uhcno.edu" ]
+sites = [ "www.abac.edu" ]
 
 # Regular functions
 # -----------------------------------------------------------------------
@@ -53,6 +53,7 @@ for domain in sites:
                     # Extract the scene number from the filename
                     scene_number = image.split('_')[1]
                     scene_number_normalized = "{:02d}".format(int(scene_number))
+                    print(f"Scene: {scene_number_normalized}")
 
                     # Define the path to the image file
                     image_path = os.path.join(scenes_path, image)
@@ -133,4 +134,4 @@ now = datetime.now()
 timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
 df_sorted.to_excel(f'scenes_{timestamp}.xlsx', index=False)
 
-print("Data has been written to output.xlsx")
+print(f"Data has been written to 'scenes_{timestamp}.xlsx")
