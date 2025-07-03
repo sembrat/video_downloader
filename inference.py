@@ -9,7 +9,7 @@ from openai import OpenAI
 
 #-----------------------------------------------------------------------
 # Configure inference
-sites = [ "springfield.edu" ]
+sites = [ "uhcno.edu" ]
 
 # Regular functions
 # -----------------------------------------------------------------------
@@ -51,7 +51,8 @@ for domain in sites:
                 if image.startswith('scene_') and image.endswith('_screenshot.jpg'):
                     print(f"Found matching screenshot! {image}")
                     # Extract the scene number from the filename
-                    scene_number = "{:02d}".format(int(image.split('_')[1]))
+                    scene_number = image.split('_')[1]
+                    scene_number_normalized = "{:02d}".format(int(scene_number))
 
                     # Define the path to the image file
                     image_path = os.path.join(scenes_path, image)
@@ -121,7 +122,7 @@ for domain in sites:
                     print(f"Video category: {video_category}")
 
                     # Append the data to the list
-                    data.append([domain, video_length, scene_number, video_description, video_category])
+                    data.append([domain, video_length, scene_number_normalized, video_description, video_category])
 
 # Create a DataFrame from the data
 df = pd.DataFrame(data, columns=['Domain', 'Length', 'Scene', 'Description', 'Category'])
