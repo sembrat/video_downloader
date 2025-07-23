@@ -9,7 +9,7 @@ from openai import OpenAI
 
 #-----------------------------------------------------------------------
 # Configure inference
-sites = [ "www.abac.edu" ]
+sites = [ "www.alvernia.edu" ]
 
 # Regular functions
 # -----------------------------------------------------------------------
@@ -41,7 +41,7 @@ for domain in sites:
     # Check if the domain path is a directory
     if os.path.isdir(domain_path):
         scenes_path = os.path.join(domain_path, 'scenes')
-
+        print(f"Analyzing scenes {scenes_path}")
         # Check if the scenes path exists and is a directory
         if os.path.isdir(scenes_path):
             print(f"Analyzing {scenes_path}...")
