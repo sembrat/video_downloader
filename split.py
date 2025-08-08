@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import mimetypes
 import time
+from config import sites 
 
 # Define the base directory
 results_dir = 'results'
@@ -15,7 +16,7 @@ results_dir = 'results'
 # - rewrite: rewrite scenes
 # - custom: apply a timestamp split for a screenshot
 operation = "rewrite" 
-sites = [ "www.alverno.edu" ]
+#sites = [ "www.andrewcollege.edu" ] # this is now in config.py
 table_lookup = "lookup.csv"
 #-----------------------------------------------------------------------
 

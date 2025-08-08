@@ -1,0 +1,1 @@
+sites = [ "www.bard.edu" ]

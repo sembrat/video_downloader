@@ -10,3 +10,4 @@ scenes_*.xlsx
 screenshots/*
 pausey_*
 ~$scenes_*
+/__pycache__

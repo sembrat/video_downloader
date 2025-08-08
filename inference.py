@@ -6,10 +6,11 @@ import subprocess
 from datetime import datetime
 import pandas as pd
 from openai import OpenAI
+from config import sites 
 
 #-----------------------------------------------------------------------
 # Configure inference
-sites = [ "www.alvernia.edu" ]
+# sites = [ "www.andrewcollege.edu" ] # this is now in config.py
 
 # Regular functions
 # -----------------------------------------------------------------------
