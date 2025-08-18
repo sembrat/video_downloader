@@ -5,32 +5,15 @@ import subprocess
 import shutil
 import mimetypes
 import time
-from config import sites
+from config import sites, subsplit
 
 # Define the base directory
 results_dir = 'results'
-
-#-----------------------------------------------------------------------
-# Configure split usage
-# - append: index for new sites
-# - rewrite: rewrite scenes
-# - custom: apply a timestamp split for a screenshot
-operation = "rewrite" 
 table_lookup = "lookup.csv"
-#-----------------------------------------------------------------------
 
 # Default variables
 scene_crawl = 10
 scene_diff = 0.30
-
-# Process operation
-# -----------------------------------------------------------------------
-# if no operation, quit.
-if operation != "append" and operation != "rewrite":
-    print(f"Provide a proper operation, [{operation}] is not valid!")
-    quit
-else:
-    print(f"Running operation {operation}")
 
 # Regular functions
 # -----------------------------------------------------------------------
@@ -60,7 +43,8 @@ def scene_split_process(directory):
         scene_diff = 0.30
     else:
         scene_crawl = result['crawl']
-        scene_diff = result['diff']
+        # Take difference and divide by two, since we can't catch a break with this scene.
+        scene_diff = float(result['diff']) / 4
     print(f"Processing video with crawl={scene_crawl}, diff={scene_diff}")
     return None
 
@@ -147,113 +131,94 @@ def process_video(video_path, institution_scenes_dir):
                 timestamps.append(timestamp)
     
     # Step 3: Split video
+    result_files = []
     print("Video analyzed; found " + str(len(timestamps)) + " splits!")
     if str(len(timestamps)) == "0":
         print("No scenes found, creating duplicate for AI usage...")
-        output_clip = os.path.join(institution_scenes_dir, 'scene_1.mp4')
+        output_clip = os.path.join(institution_scenes_dir,  f'{subsplit}_1.mp4')
         shutil.copyfile(video_path,output_clip)
-        print(f"Created scene_1.mp4!")
+        print(f"Created {subsplit}_1.mp4!")
+        result_files.append(f"{subsplit}_{1}.mp4")
     else:
         previous_timestamp = 0
         for i, timestamp in enumerate(timestamps):
-            print(f"Creating scene_{i+1}.mp4...")
-            output_clip = os.path.join(institution_scenes_dir, f'scene_{i+1}.mp4')
+            print(f"Creating {subsplit}_{i+1}.mp4...")
+            output_clip = os.path.join(institution_scenes_dir, f'{subsplit}_{i+1}.mp4')
             split_command = [
                 'ffmpeg','-y', '-i', video_path, '-ss', str(previous_timestamp), '-to', str(timestamp),
                 '-c:v', 'libx264', '-c:a', 'aac', output_clip, '-loglevel', 'error', '-stats'
             ]
             subprocess.run(split_command)
-            print(f"Created scene_{i+1}.mp4!")
+            print(f"Created {subsplit}_{i+1}.mp4!")
+            result_files.append(f"{subsplit}_{i+1}.mp4")
             previous_timestamp = timestamp
 
         # Final segment
-        output_clip = os.path.join(institution_scenes_dir, f'scene_{len(timestamps)+1}.mp4')
+        output_clip = os.path.join(institution_scenes_dir, f'{subsplit}_{len(timestamps)+1}.mp4')
+        final_timestamp = get_video_duration(video_path)
+        print("Creating final clip...")
         split_command = [
-            'ffmpeg', '-y', '-i', video_path, '-ss', str(previous_timestamp), 
-             '-c:v', 'libx264', '-c:a', 'aac', output_clip, '-loglevel', 'error', '-stats'
+            'ffmpeg', '-y', '-i', video_path, '-ss', str(timestamp), '-to', str(final_timestamp), 
+            '-c:v', 'libx264', '-c:a', 'aac', output_clip, '-loglevel', 'error', '-stats'
         ]
         subprocess.run(split_command)
-        print(f"Created scene_{len(timestamps)+1}.mp4!")
+        result_files.append(f"{subsplit}_{len(timestamps)+1}.mp4")
+        print(f"Created {subsplit}_{len(timestamps)+1}.mp4!")
+    for result_file in result_files:
+        result_file_path = os.path.join(institution_scenes_dir, result_file)
+        capture_middle_frame(result_file_path)
 
 def prune_folder(institution_path):
     shutil.rmtree(institution_path)
 
 def process_folder(institution_path):
     if os.path.isdir(institution_path):
-        
         # Create 'scenes' subdirectory inside the institution folder
         institution_scenes_dir = os.path.join(institution_path, 'scenes')
-        if operation == "rewrite":
-            if os.path.isdir(institution_scenes_dir):
-                print(f"Removing scenes directory: {institution_scenes_dir}")
-                shutil.rmtree(institution_scenes_dir)
-        if not os.path.isdir(institution_scenes_dir):
-            os.makedirs(institution_scenes_dir, exist_ok=True)
-        for video_file in os.listdir(institution_path):
+        # Build split video file from the config sub variable
+        split_video_file = subsplit + ".mp4"
+        # Now, attempt to toss that sucker into here.
+        video_file = os.path.join(institution_scenes_dir, split_video_file)
+        if os.path.exists(video_file):
             # Check if video has a fubar name
             video_file_sanitized = sanitize_filename(video_file)
             if video_file_sanitized != video_file:
                 os.rename(os.path.join(institution_path, video_file), os.path.join(institution_path, video_file_sanitized))
                 video_file = video_file_sanitized
                 del video_file_sanitized
-            video_path = os.path.join(institution_path, video_file)
+            # Legacy handoff for code - yes it's ugly, no I don't care.
+            video_path = video_file
             if os.path.isfile(video_path):
                 print(f"Checking {video_path}... ")
                 if mimetypes.guess_type(video_path)[0] is None:
                     print(f"File is none, skipping...")
-                    continue
+                    exit
                 if is_video_corrupted(video_path):
                     print(f"{video_path} is corrupt - removing the video.")
                     prune_folder(institution_path)
-                    continue
+                    exit
                 if mimetypes.guess_type(video_path)[0].startswith('video'):
                     print(f"Processing video {video_path}")
-                    # if directory is empty, rebuild scenes
-                    if operation == "append":
-                        if is_directory_empty(institution_scenes_dir):
-                            print(f"Scenes is empty, populating... {institution_scenes_dir}")
-                            process_video(video_path, institution_scenes_dir)
-                        else:
-                            print(f"Scenes is not empty, skipping! {institution_scenes_dir}")
-                    else: # Case Overwrite
-                        process_video(video_path, institution_scenes_dir)
+                    process_video(video_path, institution_scenes_dir)
+                    # Now, given the video processed, we should able to sniff out all clips starting with this?
                 else:
                     print(f"Cannot process {video_path}, mimetype is " + mimetypes.guess_type(video_path)[0])
-                ## Checking for blacked out videos and removing.
-                subprocess.run(["python", "black.py", institution_scenes_dir])
-                for video_clip_file in os.listdir(institution_scenes_dir):
-                    if video_clip_file == ".DS_Store":
-                        print(f"Blasting {video_clip_file} into the sun!")
-                        continue
-                    video_clip_path = os.path.join(institution_scenes_dir, video_clip_file)    
-                    # Removing tiny videos. 
-                    if is_video_corrupted(video_clip_path) or is_file_smaller_than_1kb(video_clip_path):
-                        print(f"{video_clip_path} is corrupt - removing the video.")
-                        os.remove(video_clip_path)
-                    else:
-                        if os.path.isfile(video_clip_path):
-                            print(f"Analyzing {video_clip_file}...")
-                            capture_middle_frame(video_clip_path)
-                        else:
-                            print(f"Path does not exist {video_clip_path}")
 
 # main function run
 # -----------------------------------------------------------------------
 # Load once
 sites_lookup = scene_split_lookup(table_lookup)
 
-if not sites:
-    # Process all videos in results/
-    for institution_folder in os.listdir(results_dir):
-        scene_split_process(institution_folder)
-        institution_path = os.path.join(results_dir, institution_folder)
-        process_folder(institution_path)
-else:
+if sites:
     # Processing array of troublemakers
     for site in sites:
         print(f"Processing {site}...")
         scene_split_process(site)
         institution_path = os.path.join(results_dir, site)
         process_folder(institution_path)
+else:
+    # Throw grumpy error
+    print("What have you done? No sites variable found.")
+    exit 
 
 print("Scene detection and video splitting completed for all videos.")
