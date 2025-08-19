@@ -52,16 +52,23 @@ for domain in sites:
                 if image.startswith(f'{subsplit}') and image.endswith('_screenshot.jpg'):
                     print(f"Found matching screenshot! {image}")
                     # Extract the scene number from the filename
+                    if len(image.split('_')) == 3:
+                        # Only two underscore instead of the 3 we're looking for, so move on.
+                        print(f"Skipping {image}...")
+                        continue
                     scene_number = image.split('_')[1]
                     scene_number_normalized = "{:02d}".format(int(scene_number))
-                    print(f"Scene: {scene_number_normalized}")
+                    subscene_number = image.split('_')[2]
+                    subscene_number_normalized = "{:02d}".format(int(scene_number))
+                    scene_subscene = f"{scene_number_normalized}.{scene_number_normalized}"
+                    print(f"Scene: {scene_subscene}")
 
                     # Define the path to the image file
                     image_path = os.path.join(scenes_path, image)
                     print(f"Analyzing {image_path}...")
 
                     # Use ffmpeg to get the video length (assuming a corresponding video file exists)
-                    video_file = os.path.join(scenes_path, f"scene_{scene_number}.mp4")
+                    video_file = os.path.join(scenes_path, f"{subsplit}_{scene_number}.mp4")
                     print(f"Full path: {video_file}...")
                     video_length = None
                     if os.path.exists(video_file):
@@ -124,7 +131,7 @@ for domain in sites:
                     print(f"Video category: {video_category}")
 
                     # Append the data to the list
-                    data.append([domain, video_length, scene_number_normalized, video_description, video_category])
+                    data.append([domain, video_length, scene_subscene, video_description, video_category])
 
 # Create a DataFrame from the data
 df = pd.DataFrame(data, columns=['Domain', 'Length', 'Scene', 'Description', 'Category'])
