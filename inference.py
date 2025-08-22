@@ -53,7 +53,7 @@ for domain in sites:
                     print(f"Found matching screenshot! {image}")
                     # Extract the scene number from the filename
                     scene_number = image.split('_')[1]
-                    scene_number_normalized = "{:02d}".format(int(scene_number))
+                    scene_number_normalized = "{:03d}".format(int(scene_number))
                     print(f"Scene: {scene_number_normalized}")
 
                     # Define the path to the image file
