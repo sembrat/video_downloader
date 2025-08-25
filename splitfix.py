@@ -10,10 +10,52 @@ from config import sites
 # Define the base directory
 results_dir = 'results'
 
+def merge_files(institution_scenes_dir, process_videos, file):
+    file_path = os.path.join(institution_scenes_dir, file)
+    video_file = os.path.join(institution_scenes_dir, "videos.txt")
+    with open(video_file, "w") as f:
+        for video in process_videos:
+            #video_path = os.path.join(institution_scenes_dir, video)
+            f.write(f"file '{video}'\n")
+
+    # FFmpeg command to concatenate videos
+    ffmpeg_command = [
+        "ffmpeg",
+        "-f", "concat",
+        "-safe", "0",
+        "-i", video_file,
+        "-c", "copy",
+        file_path,
+         '-loglevel', 'error', '-stats'
+    ]
+
+    # Run the command
+    subprocess.run(ffmpeg_command)
+    for f in process_videos:
+        f_path = os.path.join(institution_scenes_dir, f)
+        # Check if the file exists before trying to delete it
+        if os.path.exists(f_path):
+            if f == file:
+                print(f"Cannot remove {f}, it is the final form video.")
+            else:
+                os.remove(f_path)
+                print(f"Deleted unnecessary scene: {f_path}")
+                # Now, remove screencaps.
+                screencap_path = os.path.join(institution_scenes_dir, f"{os.path.splitext(f)[0]}_screenshot.jpg")
+                if os.path.exists(screencap_path):
+                    os.remove(screencap_path)
+                    print(f"Deleted screenshot: {screencap_path}")
+
+        else:
+            print(f"{f_path} does not exist.")
+        if os.path.exists(video_file):
+            os.remove(video_file)
+
 def lookup_file(institution_scenes_dir,file_dict, current_key):
     process_videos = []
-    if str(current_key) in file_dict:
-        print(f"Found file: {file_dict[str(current_key)]}")
+    lookup_key = "{:02d}".format(int(current_key))
+    if str(lookup_key) in file_dict:
+        print(f"Found file: {file_dict[str(lookup_key)]}")
     else:
         print("File not found.")
 
@@ -21,12 +63,14 @@ def lookup_file(institution_scenes_dir,file_dict, current_key):
         direction = input("Would you like to check the [next (n)] or [previous (p)] file? (or type 'exit' to quit): ").strip().lower()
         
         if direction == "n" or direction == "next":
-            process_videos.append(file_dict[str(current_key)])
-            process_videos.append(file_dict[str(current_key+1)])
+            second_key = "{:02d}".format(int(current_key+1))
+            process_videos.append(file_dict[str(lookup_key)])
+            process_videos.append(file_dict[str(second_key)])
 
         elif direction == "p" or direction == "previous":
-            process_videos.append(file_dict[str(current_key-1)])
-            process_videos.append(file_dict[str(current_key)])
+            second_key = "{:02d}".format(int(current_key-1))
+            process_videos.append(file_dict[str(second_key)])
+            process_videos.append(file_dict[str(lookup_key)])
         elif direction == "e" or direction == "exit":
             print("Exiting lookup.")
             break
@@ -34,7 +78,9 @@ def lookup_file(institution_scenes_dir,file_dict, current_key):
             print("Invalid input. Please type 'next', 'previous', or 'exit'.")
             continue
         
+        # Here's my process queue.
         print(process_videos)
+        merge_files(institution_scenes_dir, process_videos, file_dict[str(lookup_key)])
         break  # Prevent infinite recursion
 
 def process_folder(institution_path):
