@@ -1,3 +1,3 @@
-sites = [ "www.cbd.edu"]
+sites = ["www.cfcc.edu"]
 # Use this when working with subsplits only.
-subsplit = "scene_39"
+subsplit = "scene_5"
