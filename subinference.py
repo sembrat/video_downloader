@@ -59,7 +59,7 @@ for domain in sites:
                     scene_number = image.split('_')[1]
                     scene_number_normalized = "{:02d}".format(int(scene_number))
                     subscene_number = image.split('_')[2]
-                    subscene_number_normalized = "{:02d}".format(int(scene_number))
+                    subscene_number_normalized = "{:02d}".format(int(subscene_number))
                     scene_subscene = f"{scene_number_normalized}.{scene_number_normalized}"
                     print(f"Scene: {scene_subscene}")
 
@@ -68,7 +68,7 @@ for domain in sites:
                     print(f"Analyzing {image_path}...")
 
                     # Use ffmpeg to get the video length (assuming a corresponding video file exists)
-                    video_file = os.path.join(scenes_path, f"{subsplit}_{scene_number}.mp4")
+                    video_file = os.path.join(scenes_path, f"{subsplit}_{subscene_number}.mp4")
                     print(f"Full path: {video_file}...")
                     video_length = None
                     if os.path.exists(video_file):
