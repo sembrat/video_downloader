@@ -60,7 +60,7 @@ for domain in sites:
                     scene_number_normalized = "{:02d}".format(int(scene_number))
                     subscene_number = image.split('_')[2]
                     subscene_number_normalized = "{:02d}".format(int(subscene_number))
-                    scene_subscene = f"{scene_number_normalized}.{scene_number_normalized}"
+                    scene_subscene = f"{scene_number_normalized}.{subscene_number_normalized}"
                     print(f"Scene: {scene_subscene}")
 
                     # Define the path to the image file
