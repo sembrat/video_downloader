@@ -170,7 +170,7 @@ def process_video(video_path, institution_scenes_dir):
         output_clip = os.path.join(institution_scenes_dir, f'scene_{len(timestamps)+1}.mp4')
         split_command = [
             'ffmpeg', '-y', '-i', video_path, '-ss', str(previous_timestamp), 
-             '-c:v', 'libx264', '-c:a', 'aac', '-vf', '"scale=640:-2"', output_clip, '-loglevel', 'error', '-stats'
+             '-an', output_clip, '-c:v', 'libx264', '-crf', '0', '-loglevel', 'error', '-stats'
         ]
         subprocess.run(split_command)
         print(f"Created scene_{len(timestamps)+1}.mp4!")

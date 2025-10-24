@@ -63,9 +63,8 @@ def process_directory(directory):
     for video_file in directory.iterdir():
         if video_file.suffix.lower() in video_extensions and not video_file.name.startswith("BLACK_"):
             if is_mostly_black(video_file):
-                new_name = video_file.with_name(f"BLACK_{video_file.name}")
-                print(f"Renaming: {video_file.name} -> {new_name.name}")
-                video_file.rename(new_name)
+                os.remove(os.path.join(directory,video_file))
+                print(f"Removed {directory}/{video_file}, as it was a blank video.")
 
 if __name__ == "__main__":
     process_directory(VIDEO_DIR)

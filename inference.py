@@ -128,6 +128,7 @@ for domain in sites:
                 # Variable to snip out inference
                 # Is the scene a key value in glue?
                 glue_key = False
+                glue_key_index = 0
                 # Is the scene an array value in glue?
                 glue_array = False
 
@@ -141,22 +142,25 @@ for domain in sites:
                     
                     # GLUE
                     print("Checking for scene glue...")
-                    for key, value in glue_stick.items():
+                    # First, check for glue_key
+                    for key, values in glue_stick.items():
                         #print(f"Sniffing keys: {key} versus {scene_number}")
                         if str(key) == str(scene_number):
                             print(f"Scene {scene_number} is a destination scene.")
                             print(f"Associated scenes: {glue_stick[key]}")
                             glue_key = True
+                            glue_key_index = key
                             break
-                    for key,values in glue_stick.items():
-                        #print(f"Sniffing values: {values}")
                         for value in values:
                             #print(f"Sniffing value: {value} versus {scene_number}")
                             if str(value) == str(scene_number):
                                 print(f"Array value found! {value}")
                                 glue_array = True
                                 break
-                   
+                        if glue_array:
+                            # Break free of the loop.
+                            break
+ 
                     if glue_array is True:
                         continue
 
@@ -166,7 +170,7 @@ for domain in sites:
                         print("We gotta problem.")
                     if glue_key:
                         print(f"Time starts as {video_length}")
-                        for subscene in glue_stick[key]:
+                        for subscene in glue_stick[glue_key_index]:
                             video_length = add_time_strings(video_length, video_timestamps[int(subscene)])
                             print(f"Time is now {video_length}, with the addition of {video_timestamps[int(subscene)]}")
 
