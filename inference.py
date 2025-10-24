@@ -154,7 +154,7 @@ for domain in sites:
                         for value in values:
                             #print(f"Sniffing value: {value} versus {scene_number}")
                             if str(value) == str(scene_number):
-                                print(f"Array value found! {value}")
+                                print(f"Scene is a child scene for glue, skipping analysis of scene {value}!")
                                 glue_array = True
                                 break
                         if glue_array:
