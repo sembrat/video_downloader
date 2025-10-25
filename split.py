@@ -102,6 +102,19 @@ def get_video_duration(video_path):
     )
     return float(result.stdout)
 
+def get_video_height(video_path):
+    # Get the duration of the video in seconds.
+    result = subprocess.run(
+        [
+            "ffprobe", "-v", "error", "-show_entries",
+            "stream^=height", "-of",
+            "default=noprint_wrappers=1:nokey=1", video_path
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT
+    )
+    return float(result.stdout)
+
 def capture_middle_frame(video_path):
     print(f"Generating screenshot for {video_path}...")
     duration = get_video_duration(video_path)
@@ -160,7 +173,7 @@ def process_video(video_path, institution_scenes_dir):
             output_clip = os.path.join(institution_scenes_dir, f'scene_{i+1}.mp4')
             split_command = [
                 'ffmpeg','-y', '-i', video_path, '-ss', str(previous_timestamp), '-to', str(timestamp),
-                '-vf', 'scale=-2:min(640\,trunc(ih/4)*2)', '-an', output_clip, '-c:v', 'libx264', '-crf', '0', '-loglevel', 'error', '-stats'
+                '-vf', 'scale=640:-2', '-an', output_clip, '-c:v', 'libx264', '-crf', '0', '-loglevel', 'error', '-stats'
             ]
             subprocess.run(split_command)
             print(f"Created scene_{i+1}.mp4!")
@@ -170,7 +183,7 @@ def process_video(video_path, institution_scenes_dir):
         output_clip = os.path.join(institution_scenes_dir, f'scene_{len(timestamps)+1}.mp4')
         split_command = [
             'ffmpeg', '-y', '-i', video_path, '-ss', str(previous_timestamp), 
-             '-vf', 'scale=-2:min(640\,trunc(ih/4)*2)', '-an', output_clip, '-c:v', 'libx264', '-crf', '0', '-loglevel', 'error', '-stats'
+             '-vf', 'scale=640:-2', '-an', output_clip, '-c:v', 'libx264', '-crf', '0', '-loglevel', 'error', '-stats'
         ]
         subprocess.run(split_command)
         print(f"Created scene_{len(timestamps)+1}.mp4!")
