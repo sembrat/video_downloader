@@ -1,1 +1,1 @@
-sites = ["www.greensboro.edu"]
+sites = ["www.gtcc.edu"]
