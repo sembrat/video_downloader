@@ -1,1 +1,1 @@
-sites = ["www.grace.edu"]
+sites = ["www.gracechristian.edu"]
