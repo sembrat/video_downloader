@@ -140,29 +140,32 @@ for domain in sites:
                     scene_number_normalized = "{:03d}".format(int(scene_number))
                     print(f"Scene: {scene_number_normalized}")
                     
-                    # GLUE
-                    print("Checking for scene glue...")
-                    # First, check for glue_key
-                    for key, values in glue_stick.items():
-                        #print(f"Sniffing keys: {key} versus {scene_number}")
-                        if str(key) == str(scene_number):
-                            print(f"Scene {scene_number} is a destination scene.")
-                            print(f"Associated scenes: {glue_stick[key]}")
-                            glue_key = True
-                            glue_key_index = key
-                            break
-                        for value in values:
-                            #print(f"Sniffing value: {value} versus {scene_number}")
-                            if str(value) == str(scene_number):
-                                print(f"Scene is a child scene for glue, skipping analysis of scene {value}!")
-                                glue_array = True
+                    if not glue_stick:
+                        print("Glue stick is empty.")
+                    else:
+                        # GLUE
+                        print("Checking for scene glue...")
+                        # First, check for glue_key
+                        for key, values in glue_stick.items():
+                            #print(f"Sniffing keys: {key} versus {scene_number}")
+                            if str(key) == str(scene_number):
+                                print(f"Scene {scene_number} is a destination scene.")
+                                print(f"Associated scenes: {glue_stick[key]}")
+                                glue_key = True
+                                glue_key_index = key
                                 break
-                        if glue_array:
-                            # Break free of the loop.
-                            break
- 
-                    if glue_array is True:
-                        continue
+                            for value in values:
+                                #print(f"Sniffing value: {value} versus {scene_number}")
+                                if str(value) == str(scene_number):
+                                    print(f"Scene is a child scene for glue, skipping analysis of scene {value}!")
+                                    glue_array = True
+                                    break
+                            if glue_array:
+                                # Break free of the loop.
+                                break
+    
+                        if glue_array is True:
+                            continue
 
                     # Determine video_length
                     video_length = video_timestamps[int(scene_number)]
