@@ -237,6 +237,6 @@ df = df.sort_values(by='Scene')
 
 now = datetime.now()
 timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
-df.to_excel(f'scenes_{timestamp}.xlsx', index=False)
+df.to_excel(f'scenes_{timestamp}.xlsx', index=False, header=False)
 
 print(f"Data has been written to 'scenes_{timestamp}.xlsx")
