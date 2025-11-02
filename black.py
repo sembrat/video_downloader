@@ -61,10 +61,9 @@ def is_mostly_black(video_path):
 def process_directory(directory):
     video_extensions = {'.mp4', '.mov', '.avi', '.mkv', '.webm'}
     for video_file in directory.iterdir():
-        if video_file.suffix.lower() in video_extensions and not video_file.name.startswith("BLACK_"):
+        if video_file.suffix.lower() in video_extensions:
             if is_mostly_black(video_file):
                 os.remove(os.path.join(directory,video_file))
                 print(f"Removed {directory}/{video_file}, as it was a blank video.")
 
-if __name__ == "__main__":
-    process_directory(VIDEO_DIR)
+process_directory(VIDEO_DIR)

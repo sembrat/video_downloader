@@ -233,22 +233,38 @@ def process_folder(institution_path):
                 else:
                     print(f"Cannot process {video_path}, mimetype is " + mimetypes.guess_type(video_path)[0])
                 ## Checking for blacked out videos and removing.
-                subprocess.run(["python", "black.py", institution_scenes_dir])
-                for video_clip_file in os.listdir(institution_scenes_dir):
+                #subprocess.run(["python", "black.py", institution_scenes_dir])
+                # Cleaning up bad videos.
+                video_clip_files = [ f for f in os.listdir(institution_scenes_dir) if f.endswith('.mp4') ]
+                for video_clip_file in video_clip_files:
+                    video_clip_path = os.path.join(institution_scenes_dir, video_clip_file)    
+                    result = subprocess.run(
+                        [
+                        "ffprobe", "-v", "error", "-show_entries",
+                        "format=duration", "-of",
+                        "default=noprint_wrappers=1:nokey=1", video_clip_path
+                        ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT
+                    )
+                    if result == "N/A":
+                        print(f"{video_clip_path} is empty - removing the video.")
+                        os.remove(video_clip_path)
+                        continue
                     if video_clip_file == ".DS_Store":
                         print(f"Blasting {video_clip_file} into the sun!")
                         continue
-                    video_clip_path = os.path.join(institution_scenes_dir, video_clip_file)    
                     # Removing tiny videos. 
                     if is_video_corrupted(video_clip_path) or is_file_smaller_than_1kb(video_clip_path):
                         print(f"{video_clip_path} is corrupt - removing the video.")
                         os.remove(video_clip_path)
+                        continue
+                   
+                    if os.path.isfile(video_clip_path):
+                        print(f"Analyzing {video_clip_file}...")
+                        capture_middle_frame(video_clip_path)
                     else:
-                        if os.path.isfile(video_clip_path):
-                            print(f"Analyzing {video_clip_file}...")
-                            capture_middle_frame(video_clip_path)
-                        else:
-                            print(f"Path does not exist {video_clip_path}")
+                        print(f"Path does not exist {video_clip_path}")
 
 # main function run
 # -----------------------------------------------------------------------
