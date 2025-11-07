@@ -1,1 +1,1 @@
-sites = ["www.logan.edu"]
+sites = ["www.marybaldwin.edu"]
