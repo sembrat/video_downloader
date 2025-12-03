@@ -19,7 +19,7 @@ print(f"Running blank video scenes on video path: {args.path}")
 # Directory containing the videos
 VIDEO_DIR = Path(args.path)
 # Thresholds
-BLACK_THRESHOLD_SECONDS = 0.9  # if this much of the video is black, it will be renamed
+BLACK_THRESHOLD_SECONDS = 0.75  # if this much of the video is black, it will be renamed
 
 def is_mostly_black(video_path):
     """Uses ffmpeg to check if the video is mostly black"""
@@ -63,7 +63,7 @@ def process_directory(directory):
     for video_file in directory.iterdir():
         if video_file.suffix.lower() in video_extensions:
             if is_mostly_black(video_file):
-                os.remove(os.path.join(directory,video_file))
-                print(f"Removed {directory}/{video_file}, as it was a blank video.")
+                os.remove(video_file)
+                print(f"Removed {video_file}, as it was a blank video.")
 
 process_directory(VIDEO_DIR)
