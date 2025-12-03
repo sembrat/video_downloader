@@ -240,3 +240,7 @@ timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
 df.to_excel(f'scenes_{timestamp}.xlsx', index=False, header=False)
 
 print(f"Data has been written to 'scenes_{timestamp}.xlsx")
+with open("glue.csv", "r+") as f:
+    f.seek(0)
+    f.truncate()
+    print("Degluesion complete!")
