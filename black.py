@@ -19,8 +19,7 @@ print(f"Running blank video scenes on video path: {args.path}")
 # Directory containing the videos
 VIDEO_DIR = Path(args.path)
 # Thresholds
-# Making half because of video middle capture.
-BLACK_THRESHOLD_SECONDS = 0.50  # if this much of the video is black, it will be renamed
+BLACK_THRESHOLD_SECONDS = 0.85  # if this much of the video is black, it will be removed
 
 def is_mostly_black(video_path):
     """Uses ffmpeg to check if the video is mostly black"""
@@ -39,7 +38,7 @@ def is_mostly_black(video_path):
         # Run blackdetect
         cmd = [
             "ffmpeg", "-i", str(video_path),
-            "-vf", "blackdetect=d=0.05:pic_th=0.25",
+            "-vf", "blackdetect=d=0.5:pic_th=0.10",
             "-an", "-f", "null", "-"
         ]
         result = subprocess.run(cmd, stderr=subprocess.PIPE, stdout=subprocess.DEVNULL, text=True)
@@ -79,7 +78,7 @@ def is_mostly_white(video_path):
             # Run blackdetect
             cmd = [
                 "ffmpeg", "-i", str(video_path),
-                "-vf", "negate,blackdetect=d=0.05:pic_th=0.25",
+                "-vf", "negate,blackdetect=d=0.5:pic_th=0.10",
                 "-an", "-f", "null", "-"
             ]
             result = subprocess.run(cmd, stderr=subprocess.PIPE, stdout=subprocess.DEVNULL, text=True)

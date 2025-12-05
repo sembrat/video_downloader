@@ -233,9 +233,6 @@ def process_folder(institution_path):
                 else:
                     print(f"Cannot process {video_path}, mimetype is " + mimetypes.guess_type(video_path)[0])
                 
-                ## Checking for blacked out videos and removing.
-                subprocess.run(["python", "black.py", institution_scenes_dir])
-
                 # Cleaning up bad videos.
                 video_clip_files = [ f for f in os.listdir(institution_scenes_dir) if f.endswith('.mp4') ]
                 for video_clip_file in video_clip_files:
