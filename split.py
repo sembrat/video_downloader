@@ -127,7 +127,8 @@ def capture_middle_frame(video_path):
     if os.path.exists(output_image_path):
         os.remove(output_image_path)
 
-    subprocess.run([
+    try:
+        subprocess.check_output([
         "ffmpeg",
         "-y",
         "-ss", str(midpoint),
@@ -137,6 +138,18 @@ def capture_middle_frame(video_path):
         output_image_path,
         '-loglevel', 'error', '-stats'
     ])
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        subprocess.run([
+        "ffmpeg",
+        "-y",
+        "-ss", 0,
+        "-i", video_path,
+        "-frames:v", "1",
+        "-q:v", "2",
+        output_image_path,
+        '-loglevel', 'error', '-stats'
+        ])
     print(f"Screenshot saved as: {output_image_path}")
 
 # Function to detect scenes and split video
