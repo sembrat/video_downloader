@@ -87,7 +87,7 @@ for domain in sites:
                     if not row:
                         continue  # Skip empty lines
                     # Checking if dash exists
-                    first, second = row.split(",", 1)
+                    first, second = row[0], row[1]
 
                     # Check if second part contains '-'
                     if "-" in second:
