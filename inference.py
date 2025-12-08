@@ -93,11 +93,13 @@ for domain in sites:
                     if "-" in second:
                         start, end = map(int, second.split("-"))
                         scene_numbers = [str(i) for i in range(start, end + 1)]
+                        destination_scene = first
                     else:
                         scene_numbers = [int(num.strip()) for num in row]
-                    destination_scene = scene_numbers[0]
-                    # Since destination is key, no longer needed in array
-                    scene_numbers.remove(destination_scene)
+                        destination_scene = scene_numbers[0]
+                        # Since destination is key, no longer needed in array
+                        scene_numbers.remove(destination_scene)
+                    
                     #print(f"Inserting glue {destination_scene}{scene_numbers} into nose!")
                     glue_stick[destination_scene] = scene_numbers
                     # Glue Stick is now rendered.
