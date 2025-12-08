@@ -86,7 +86,15 @@ for domain in sites:
                 for row in reader:
                     if not row:
                         continue  # Skip empty lines
-                    scene_numbers = [int(num.strip()) for num in row]
+                    # Checking if dash exists
+                    first, second = row.split(",", 1)
+
+                    # Check if second part contains '-'
+                    if "-" in second:
+                        start, end = map(int, second.split("-"))
+                        scene_numbers = [str(i) for i in range(start, end + 1)]
+                    else:
+                        scene_numbers = [int(num.strip()) for num in row]
                     destination_scene = scene_numbers[0]
                     # Since destination is key, no longer needed in array
                     scene_numbers.remove(destination_scene)
