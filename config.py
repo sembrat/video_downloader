@@ -1,3 +1,3 @@
 sites = [
-    "www.pct.edu"
+    "www.pgcc.edu"
     ]
