@@ -71,7 +71,7 @@ def sanitize_filename(filename):
     return filename.split('?')[0]
 
 def is_file_smaller_than_1kb(file_path):
-    return os.path.getsize(file_path) < 1024
+    return os.path.getsize(file_path) < 4096
 
 def is_video_corrupted(file_path):
     try:
