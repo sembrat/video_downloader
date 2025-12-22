@@ -8,7 +8,7 @@ www.abac.edu,5,0.2
 www.abu.edu,5,0.2
 www.acu.edu,10,0.10
 www.adelphi.edu,15,0.2
-www.agnesscott.edu,10,0.2
+www.agnesscott.edu,10,0.075
 www.aimm.edu,15,0.05
 www.alaskapacific.edu,5,0.2
 www.albright.edu,5,0.2
@@ -51,7 +51,7 @@ www.bishop.edu,5,0.125
 www.blinn.edu,10,0.2
 www.bluefieldstate.edu,10,0.15
 www.bmats.edu,10,0.2
-www.boisebible.edu,2,0.2
+www.boisebible.edu,2,0.05
 www.brookdalecc.edu,10,0.15
 www.buc.edu,80,0.05
 www.bucks.edu,10,0.2
@@ -119,7 +119,7 @@ www.culinaryinstitute.edu,10,0.15
 www.cuny.edu,10,0.2
 www.cvcc.edu,10,0.15
 www.cwu.edu,10,0.15
-www.davidson.edu,10,0.125
+www.davidson.edu,15,0.05
 www.daytonastate.edu,80,0.10
 www.dbu.edu,10,0.125
 www.dc3.edu,10,0.01
@@ -142,9 +142,9 @@ www.ecsu.edu,10,0.175
 www.eiu.edu,10,0.075
 www.eku.edu,10,0.2
 www.elmhurst.edu,30,0.10
-www.elms.edu,10,0.175
+www.elms.edu,5,0.05
 www.elon.edu,10,0.2
-www.emerson.edu,10,0.075
+www.emerson.edu,10,0.025
 www.emmaus.edu,10,0.05
 www.emporia.edu,60,0.05
 www.etown.edu,10,0.2
@@ -580,3 +580,11 @@ www.wofford.edu,10,0.1
 www.worcester.edu,5,0.05
 www.wpcc.edu,10,0.05
 www.wpi.edu,10,0.05
+www.wspp.edu,10,0.1
+www.wsu.edu,10,0.1
+www.wtamu.edu,10,0.1
+www.wti.edu,10,0.05
+www.wvsom.edu,10,0.1
+www.yoec.edu,10,0.1
+www.yorktech.edu,10,0.1
+www.yu.edu,5,0.075
