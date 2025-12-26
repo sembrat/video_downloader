@@ -12,3 +12,4 @@ pausey_*
 ~$scenes_*
 /__pycache__
 ipeds_*.csv
+analysis/output/*
